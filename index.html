@@ -149,7 +149,12 @@
         const target = document.getElementById("targetLang").value;
         const engines = (await makeRequest("/engines", {
           method: "GET",
-        })) || ["google", "mymemory", "pons", "linguee"];
+        }).then((response) => response.engines)) || [
+          "google",
+          "mymemory",
+          "pons",
+          "linguee",
+        ];
 
         for (const engine of engines) {
           try {
