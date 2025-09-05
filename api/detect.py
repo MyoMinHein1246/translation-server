@@ -1,6 +1,6 @@
 from http.server import BaseHTTPRequestHandler
 import json
-from deep_translator import single_detection  # may be removed
+from deep_translator import GoogleTranslator
 
 class handler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -20,8 +20,9 @@ class handler(BaseHTTPRequestHandler):
                 raise ValueError("Missing 'q' parameter")
             
             # Attempt detection
-            detected_lang = single_detection(text)  # may fail
-            response = {"language": detected_lang, "confidence": 0.99}
+            translator = GoogleTranslator(source='auto', target='en')
+            detected_lang = translator.detect(text)
+            response = {"language": detected_lang}
             
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
