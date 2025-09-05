@@ -1,12 +1,12 @@
 from http.server import BaseHTTPRequestHandler
 import json
-from api.translate import handler as TranslateHandler  # Import the translate handler
+from .engine_config import ENGINE_METHODS  # Import the centralized engine methods
 
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         """Return the list of currently implemented engines."""
-        engines = list(TranslateHandler().ENGINE_METHODS.keys())  # Dynamically fetch engines
+        engines = list(ENGINE_METHODS.keys())  # Fetch engines from the centralized dictionary
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')

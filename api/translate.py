@@ -1,18 +1,12 @@
 from http.server import BaseHTTPRequestHandler
 import json
-from deep_translator import GoogleTranslator, MyMemoryTranslator, PonsTranslator, LingueeTranslator
+from .engine_config import ENGINE_METHODS
 from swiftshadow import QuickProxy
 
 
 class handler(BaseHTTPRequestHandler):
-
     def __init__(self, *args, **kwargs):
-        self.ENGINE_METHODS = {
-            "google": self.translate_with_google,
-            "mymemory": self.translate_with_mymemory,
-            "pons": self.translate_with_pons,
-            "linguee": self.translate_with_linguee
-        }
+        self.ENGINE_METHODS = ENGINE_METHODS  # Use the centralized engine methods
         super().__init__(*args, **kwargs)
 
     def do_POST(self):
@@ -61,51 +55,10 @@ class handler(BaseHTTPRequestHandler):
 
     def perform_translation(self, engine, text, source, target):
         """Perform translation based on the selected engine."""
-
         if engine in self.ENGINE_METHODS:
             return self.ENGINE_METHODS[engine](text, source, target)
         else:
             raise ValueError(f"Unsupported engine: {engine}")
-
-    def translate_with_google(self, text, source, target):
-        """Translate using Google Translator with proxy fallback."""
-        try:
-            translator = GoogleTranslator(source=source, target=target)
-            return translator.translate(text)
-        except Exception:
-            proxies = self.get_proxies()
-            translator = GoogleTranslator(source=source, target=target, proxies=proxies)
-            return translator.translate(text)
-
-    def translate_with_mymemory(self, text, source, target):
-        """Translate using MyMemory Translator with proxy fallback."""
-        try:
-            translator = MyMemoryTranslator(source=source, target=target)
-            return translator.translate(text)
-        except Exception:
-            proxies = self.get_proxies()
-            translator = MyMemoryTranslator(source=source, target=target, proxies=proxies)
-            return translator.translate(text)
-
-    def translate_with_pons(self, text, source, target):
-        """Translate using Pons Translator with proxy fallback."""
-        try:
-            translator = PonsTranslator(source=source, target=target)
-            return translator.translate(text)
-        except Exception:
-            proxies = self.get_proxies()
-            translator = PonsTranslator(source=source, target=target, proxies=proxies)
-            return translator.translate(text)
-
-    def translate_with_linguee(self, text, source, target):
-        """Translate using Linguee Translator with proxy fallback."""
-        try:
-            translator = LingueeTranslator(source=source, target=target)
-            return translator.translate(text)
-        except Exception:
-            proxies = self.get_proxies()
-            translator = LingueeTranslator(source=source, target=target, proxies=proxies)
-            return translator.translate(text)
 
     def get_proxies(self):
         """Get proxy settings."""
