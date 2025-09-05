@@ -3,7 +3,7 @@ import http.client
 import json
 import os
 from deep_translator import GoogleTranslator, MicrosoftTranslator
-from swiftshadow import QuickProxy, ProxyInterface
+from swiftshadow import QuickProxy
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -50,10 +50,10 @@ class handler(BaseHTTPRequestHandler):
                 httpsProxy = QuickProxy('https')
 
                 proxies = {
-                    "http": httpProxy,
-                    "https": httpsProxy
+                    "http": httpProxy.as_string(),
+                    "https": httpsProxy.as_string()
                 }
-                
+
                 translator = GoogleTranslator(source=source, target=target, proxies=proxies)
                 translated_text = translator.translate(text)
             
