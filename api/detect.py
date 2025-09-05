@@ -1,37 +1,41 @@
 from http.server import BaseHTTPRequestHandler
 import json
-from deep_translator import single_detection
+from deep_translator import single_detection  # may be removed
 
 class handler(BaseHTTPRequestHandler):
+    def log_message(self, format, *args):
+        # Override to log to stdout (visible in Vercel logs)
+        print("%s - - [%s] %s\n" %
+              (self.client_address[0],
+               self.log_date_time_string(),
+               format%args))
+
     def do_POST(self):
         try:
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data.decode('utf-8'))
-            
             text = data.get('q', '')
-            
             if not text:
-                self.send_error_response(400, "Text parameter 'q' is required")
-                return
+                raise ValueError("Missing 'q' parameter")
             
-            detected_lang = single_detection(text)
-            
-            response = {
-                "language": detected_lang,
-                "confidence": 0.99
-            }
+            # Attempt detection
+            detected_lang = single_detection(text)  # may fail
+            response = {"language": detected_lang, "confidence": 0.99}
             
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
             self.end_headers()
-            
             self.wfile.write(json.dumps(response).encode())
             
         except Exception as e:
+            # Log the exception
+            self.log_message("Exception in /api/detect: %s", str(e))
             self.send_error_response(500, str(e))
-    
+
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -44,6 +48,4 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Content-Type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
-        
-        error_response = {"error": message}
-        self.wfile.write(json.dumps(error_response).encode())
+        self.wfile.write(json.dumps({"error": message}).encode())
