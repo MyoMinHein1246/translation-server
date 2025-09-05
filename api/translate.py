@@ -50,8 +50,8 @@ class handler(BaseHTTPRequestHandler):
                 httpsProxy = QuickProxy(protocol='https')
 
                 proxies = {
-                    "http": httpProxy.as_string(),
-                    "https": httpsProxy.as_string()
+                    "http": f"{httpProxy.ip}:{httpProxy.port}",
+                    "https": f"{httpsProxy.ip}:{httpsProxy.port}"
                 }
 
                 translator = GoogleTranslator(source=source, target=target, proxies=proxies)
