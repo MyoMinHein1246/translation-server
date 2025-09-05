@@ -1,6 +1,10 @@
 from http.server import BaseHTTPRequestHandler
+import http.client
 import json
+import os
+from typing import Text
 from deep_translator import GoogleTranslator, MicrosoftTranslator
+
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -22,7 +26,23 @@ class handler(BaseHTTPRequestHandler):
             
             # Perform translation
             if engine == 'microsoft':
-                translator = MicrosoftTranslator(source=source, target=target)
+                # translator = MicrosoftTranslator(source=source, target=target)
+                conn = http.client.HTTPSConnection("microsoft-translator-text.p.rapidapi.com")
+
+                payload = f'[{"Text":{text}}]'
+
+                headers = {
+                    'x-rapidapi-key': os.getenv("MSFT_ENV_VAR"),
+                    'x-rapidapi-host': "microsoft-translator-text.p.rapidapi.com",
+                    'Content-Type': "application/json"
+                }
+
+                conn.request("POST", "/translate?api-version=3.0&profanityAction=NoAction&textType=plain", payload, headers)
+
+                res = conn.getresponse()
+                data = res.read()
+
+                print(data.decode("utf-8"))
             else:
                 translator = GoogleTranslator(source=source, target=target)
                 
