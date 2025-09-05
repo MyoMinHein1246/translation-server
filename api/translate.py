@@ -19,6 +19,7 @@ class handler(BaseHTTPRequestHandler):
             source = data.get('source', 'auto')
             target = data.get('target', 'en')
             engine = data.get('engine', 'google')
+            translated_text = "Error"
             
             if not text:
                 self.send_error_response(400, "Text parameter 'q' is required")
@@ -42,11 +43,10 @@ class handler(BaseHTTPRequestHandler):
                 res = conn.getresponse()
                 data = res.read()
 
-                print(data.decode("utf-8"))
+                translated_text = data.decode("utf-8")
             else:
                 translator = GoogleTranslator(source=source, target=target)
-                
-            translated_text = translator.translate(text)
+                translated_text = translator.translate(text)
             
             # Send response
             response = {
