@@ -27,7 +27,7 @@ def translate_with_qcri(text, source, target):
     try:
         """Translate using QCRI Translator."""
         translator = QcriTranslator(source=source, target=target)
-        return translator.translate(text)
+        return translator.translate(text=text, source=source, target=target, domain="general")
     except Exception as e:
         return f"QCRI Translation Error: {str(e)}"
 
