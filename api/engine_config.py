@@ -14,13 +14,16 @@ def translate_with_google(text, source, target, proxies=None):
     
 
 def translate_with_mymemory(text, source, target, proxies=None):
+    source_name = next((lang["name"] for lang in LANGUAGES if lang["code"] == source), "auto")
+    target_name = next((lang["name"] for lang in LANGUAGES if lang["code"] == target), target).lower()
+
     try:
         """Translate using MyMemory Translator with optional proxy fallback."""
-        translator = MyMemoryTranslator(source=source, target=target)
+        translator = MyMemoryTranslator(source=source_name, target=target_name, proxies=proxies)
         return translator.translate(text)
     except Exception as e:
         if proxies:
-            translator = MyMemoryTranslator(source=source, target=target, proxies=proxies)
+            translator = MyMemoryTranslator(source=source_name, target=target_name, proxies=proxies)
             return translator.translate(text)
 
 def translate_with_qcri(text, source, target):
