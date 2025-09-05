@@ -67,13 +67,14 @@
         <label>Engine:</label>
         <select id="engine">
           <option value="google" selected>Google Translate</option>
-          <option value="microsoft">Microsoft Translator</option>
+          <option value="mymemory">MyMemory Translator</option>
+          <option value="pons">Pons Translator</option>
+          <option value="linguee">Linguee Translator</option>
         </select>
       </div>
 
       <button onclick="translateText()">Translate</button>
-      <button onclick="detectLanguage()">Detect Language</button>
-      <button onclick="testAllEndpoints()">Test All Endpoints</button>
+      <button onclick="testAllEngines()">Test All Engines</button>
 
       <div class="input-group">
         <label>Result:</label>
@@ -142,72 +143,39 @@
         }
       }
 
-      async function detectLanguage() {
+      async function testAllEngines() {
         const text = document.getElementById("sourceText").value;
+        const source = document.getElementById("sourceLang").value;
+        const target = document.getElementById("targetLang").value;
+        const engines = (await makeRequest("/translate")) || [
+          "google",
+          "mymemory",
+          "pons",
+          "linguee",
+        ];
 
-        try {
-          const result = await makeRequest("/detect", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ q: text }),
-          });
+        for (const engine of engines) {
+          try {
+            log(`Testing engine: ${engine}...`);
+            const result = await makeRequest("/translate", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                q: text,
+                source: source,
+                target: target,
+                engine: engine,
+              }),
+            });
 
-          document.getElementById(
-            "result"
-          ).value = `Detected: ${result.language} (confidence: ${result.confidence})`;
-        } catch (error) {
-          document.getElementById("result").value = `Error: ${error.message}`;
+            log(`✅ ${engine}: ${result.translatedText}`, "success");
+          } catch (error) {
+            log(`❌ ${engine}: ${error.message}`, "error");
+          }
         }
       }
-
-      async function testAllEndpoints() {
-        log("🧪 Starting comprehensive API test...");
-
-        // Test languages endpoint
-        try {
-          const languages = await makeRequest("/languages");
-          log(
-            `Languages: Found ${languages.length} supported languages`,
-            "success"
-          );
-        } catch (error) {
-          log(`Languages endpoint failed: ${error.message}`, "error");
-        }
-
-        // Test detection endpoint
-        try {
-          const detection = await makeRequest("/detect", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ q: "Bonjour le monde" }),
-          });
-          log(`Detection: ${detection.language}`, "success");
-        } catch (error) {
-          log(`Detection endpoint failed: ${error.message}`, "error");
-        }
-
-        // Test translation endpoint
-        try {
-          const translation = await makeRequest("/translate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ q: "Hello", source: "en", target: "es" }),
-          });
-          log(`Translation: "${translation.translatedText}"`, "success");
-        } catch (error) {
-          log(`Translation endpoint failed: ${error.message}`, "error");
-        }
-
-        log("🏁 Test complete!");
-      }
-
-      // Test on page load
-      window.onload = function () {
-        log("Page loaded, testing endpoints...");
-        testAllEndpoints();
-      };
     </script>
   </body>
 </html>

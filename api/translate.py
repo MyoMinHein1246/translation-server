@@ -1,65 +1,40 @@
 from http.server import BaseHTTPRequestHandler
-import http.client
 import json
-import os
-from deep_translator import GoogleTranslator, MicrosoftTranslator
+from deep_translator import GoogleTranslator, MyMemoryTranslator, PonsTranslator, LingueeTranslator
 from swiftshadow import QuickProxy
 
+
 class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        # return all available engines
+        engines = ["google", "mymemory", "pons", "linguee"]
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(json.dumps({"engines": engines}).encode())
+        
+
     def do_POST(self):
         try:
             # Parse request body
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data.decode('utf-8'))
-            
+
             # Extract parameters
             text = data.get('q', '')
             source = data.get('source', 'auto')
             target = data.get('target', 'en')
             engine = data.get('engine', 'google')
-            translated_text = "Error"
-            
+
             if not text:
                 self.send_error_response(400, "Text parameter 'q' is required")
                 return
-            
-            # Perform translation
-            if engine == 'microsoft':
-                conn = http.client.HTTPSConnection("microsoft-translator-text.p.rapidapi.com")
 
-                payload = f'[{{"Text": "{text}"}}]'
+            # Perform translation based on the selected engine
+            translated_text = self.perform_translation(engine, text, source, target)
 
-                headers = {
-                    'x-rapidapi-key': os.getenv("MSFT_ENV_VAR"),
-                    'x-rapidapi-host': "microsoft-translator-text.p.rapidapi.com",
-                    'Content-Type': "application/json"
-                }
-
-                conn.request("POST", f"/translate?to={target}&api-version=3.0&profanityAction=NoAction&textType=plain", payload, headers)
-
-                res = conn.getresponse()
-                data = res.read()
-
-                translated_text = data.decode("utf-8")
-            else:
-                try:
-                    # First attempt without proxies
-                    translator = GoogleTranslator(source=source, target=target)
-                    translated_text = translator.translate(text)
-                except Exception as e:
-                    # Fallback to using proxies if the first attempt fails
-                    httpProxy = QuickProxy(countries=['SG', 'TH', 'MM', 'JP'], protocol='http')
-                    httpsProxy = QuickProxy(countries=['SG', 'TH', 'MM', 'JP'], protocol='https')
-
-                    proxies = {
-                        "http": f"{httpProxy.ip}:{httpProxy.port}",
-                        "https": f"{httpsProxy.ip}:{httpsProxy.port}"
-                    }
-
-                    translator = GoogleTranslator(source=source, target=target, proxies=proxies)
-                    translated_text = translator.translate(text)
-        
             # Send response
             response = {
                 "translatedText": translated_text,
@@ -67,31 +42,94 @@ class handler(BaseHTTPRequestHandler):
                 "target": target,
                 "engine": engine
             }
-            
+
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
             self.send_header('Access-Control-Allow-Headers', 'Content-Type')
             self.end_headers()
-            
+
             self.wfile.write(json.dumps(response).encode())
-            
+
         except Exception as e:
             self.send_error_response(500, str(e))
-    
+
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
-    
+
     def send_error_response(self, status_code, message):
         self.send_response(status_code)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
-        
+
         error_response = {"error": message}
         self.wfile.write(json.dumps(error_response).encode())
+
+    def perform_translation(self, engine, text, source, target):
+        """Perform translation based on the selected engine."""
+        if engine == 'google':
+            return self.translate_with_google(text, source, target)
+        elif engine == 'mymemory':
+            return self.translate_with_mymemory(text, source, target)
+        elif engine == 'pons':
+            return self.translate_with_pons(text, source, target)
+        elif engine == 'linguee':
+            return self.translate_with_linguee(text, source, target)
+        else:
+            raise ValueError(f"Unsupported engine: {engine}")
+
+    def translate_with_google(self, text, source, target):
+        """Translate using Google Translator with proxy fallback."""
+        try:
+            translator = GoogleTranslator(source=source, target=target)
+            return translator.translate(text)
+        except Exception:
+            proxies = self.get_proxies()
+            translator = GoogleTranslator(source=source, target=target, proxies=proxies)
+            return translator.translate(text)
+
+    def translate_with_mymemory(self, text, source, target):
+        """Translate using MyMemory Translator with proxy fallback."""
+        try:
+            translator = MyMemoryTranslator(source=source, target=target)
+            return translator.translate(text)
+        except Exception:
+            proxies = self.get_proxies()
+            translator = MyMemoryTranslator(source=source, target=target, proxies=proxies)
+            return translator.translate(text)
+
+    def translate_with_pons(self, text, source, target):
+        """Translate using Pons Translator with proxy fallback."""
+        try:
+            translator = PonsTranslator(source=source, target=target)
+            return translator.translate(text)
+        except Exception:
+            proxies = self.get_proxies()
+            translator = PonsTranslator(source=source, target=target, proxies=proxies)
+            return translator.translate(text)
+
+    def translate_with_linguee(self, text, source, target):
+        """Translate using Linguee Translator with proxy fallback."""
+        try:
+            translator = LingueeTranslator(source=source, target=target)
+            return translator.translate(text)
+        except Exception:
+            proxies = self.get_proxies()
+            translator = LingueeTranslator(source=source, target=target, proxies=proxies)
+            return translator.translate(text)
+
+    def get_proxies(self):
+        """Get proxy settings."""
+        httpProxy = QuickProxy(countries=['SG', 'TH', 'MM', 'JP'], protocol='http')
+        httpsProxy = QuickProxy(countries=['SG', 'TH', 'MM', 'JP'], protocol='https')
+
+        return {
+            "http": f"{httpProxy.ip}:{httpProxy.port}",
+            "https": f"{httpsProxy.ip}:{httpsProxy.port}"
+        }
