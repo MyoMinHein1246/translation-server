@@ -29,7 +29,7 @@ class handler(BaseHTTPRequestHandler):
                 # translator = MicrosoftTranslator(source=source, target=target)
                 conn = http.client.HTTPSConnection("microsoft-translator-text.p.rapidapi.com")
 
-                payload = f'[{"Text":{text}}]'
+                payload = f'[{"Text": "{text}"}]'
 
                 headers = {
                     'x-rapidapi-key': os.getenv("MSFT_ENV_VAR"),
