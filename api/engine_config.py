@@ -38,6 +38,6 @@ def translate_with_qcri(text, source, target, proxies=None):
 # Centralized engine methods
 ENGINE_METHODS = {
     "google": translate_with_google,
-    "mymemory": translate_with_mymemory,
+    # "mymemory": translate_with_mymemory,
     "qcri": translate_with_qcri,
 }
