@@ -19,7 +19,7 @@ def translate_with_mymemory(text, source, target, proxies=None):
 
     try:
         """Translate using MyMemory Translator with optional proxy fallback."""
-        translator = MyMemoryTranslator(source=source_name, target=target_name, proxies=proxies)
+        translator = MyMemoryTranslator(source=source_name, target=target_name)
         return translator.translate(text)
     except Exception as e:
         if proxies:

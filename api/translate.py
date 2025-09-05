@@ -56,7 +56,7 @@ class handler(BaseHTTPRequestHandler):
     def perform_translation(self, engine, text, source, target):
         """Perform translation based on the selected engine."""
         if engine in self.ENGINE_METHODS:
-            return self.ENGINE_METHODS[engine](text, source, target)
+            return self.ENGINE_METHODS[engine](text, source, target, proxies=self.get_proxies())
         else:
             raise ValueError(f"Unsupported engine: {engine}")
 
