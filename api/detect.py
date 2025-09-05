@@ -32,6 +32,13 @@ class handler(BaseHTTPRequestHandler):
         except Exception as e:
             self.send_error_response(500, str(e))
     
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+
     def send_error_response(self, status_code, message):
         self.send_response(status_code)
         self.send_header('Content-Type', 'application/json')

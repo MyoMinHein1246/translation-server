@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Translation API Test</title>
+  </head>
+  <body>
+    <h1>Translation API Test</h1>
+
+    <div>
+      <label>Text to translate:</label><br />
+      <textarea id="sourceText" rows="3" cols="50">Hello world</textarea>
+    </div>
+
+    <div>
+      <label>From:</label>
+      <select id="sourceLang">
+        <option value="auto">Auto-detect</option>
+        <option value="en" selected>English</option>
+        <option value="es">Spanish</option>
+        <option value="fr">French</option>
+      </select>
+
+      <label>To:</label>
+      <select id="targetLang">
+        <option value="es" selected>Spanish</option>
+        <option value="en">English</option>
+        <option value="fr">French</option>
+        <option value="de">German</option>
+      </select>
+    </div>
+
+    <button onclick="translateText()">Translate</button>
+
+    <div>
+      <label>Translation:</label><br />
+      <textarea id="result" rows="3" cols="50" readonly></textarea>
+    </div>
+
+    <script>
+      async function translateText() {
+        const text = document.getElementById("sourceText").value;
+        const source = document.getElementById("sourceLang").value;
+        const target = document.getElementById("targetLang").value;
+
+        try {
+          // Replace with your actual Vercel app URL
+          const response = await fetch(
+            "https://translation-server-phi.vercel.app",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                q: text,
+                source: source,
+                target: target,
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          document.getElementById("result").value = result.translatedText;
+        } catch (error) {
+          document.getElementById("result").value = "Error: " + error.message;
+        }
+      }
+
+      // Test all endpoints
+      async function testAllEndpoints() {
+        const baseUrl = "https://translation-server-phi.vercel.app";
+
+        console.log("Testing /api/languages...");
+        try {
+          const langResponse = await fetch(`${baseUrl}/api/languages`);
+          const languages = await langResponse.json();
+          console.log("Languages:", languages);
+        } catch (error) {
+          console.error("Languages endpoint error:", error);
+        }
+
+        console.log("Testing /api/detect...");
+        try {
+          const detectResponse = await fetch(`${baseUrl}/api/detect`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ q: "Bonjour le monde" }),
+          });
+          const detection = await detectResponse.json();
+          console.log("Detection:", detection);
+        } catch (error) {
+          console.error("Detection endpoint error:", error);
+        }
+      }
+
+      // Automatically test when page loads
+      window.onload = function () {
+        testAllEndpoints();
+      };
+    </script>
+  </body>
+</html>
