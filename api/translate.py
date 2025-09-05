@@ -56,17 +56,25 @@ class handler(BaseHTTPRequestHandler):
     def perform_translation(self, engine, text, source, target):
         """Perform translation based on the selected engine."""
         if engine in self.ENGINE_METHODS:
-            return self.ENGINE_METHODS[engine](text, source, target, proxies=self.get_proxies())
+            httpProxy = QuickProxy(countries=['SG', 'TH', 'MM', 'JP'], protocol='http')
+            httpsProxy = QuickProxy(countries=['SG', 'TH', 'MM', 'JP'], protocol='https')
+
+            if not httpProxy:
+                http = None
+            else:
+                http = f"{httpProxy.ip}:{httpProxy.port}"
+
+            if not httpsProxy:
+                https = None
+            else:
+                https = f"{httpsProxy.ip}:{httpsProxy.port}"
+
+            proxy = {
+                "http": http,
+                "https": https
+            }
+
+            return self.ENGINE_METHODS[engine](text, source, target, proxies=proxy)
         else:
             raise ValueError(f"Unsupported engine: {engine}")
-
-    def get_proxies(self):
-        """Get proxy settings."""
-        httpProxy = QuickProxy(countries=['SG', 'TH', 'MM', 'JP'], protocol='http')
-        httpsProxy = QuickProxy(countries=['SG', 'TH', 'MM', 'JP'], protocol='https')
-
-        return {
-            "http": f"{httpProxy.ip}:{httpProxy.port}",
-            "https": f"{httpsProxy.ip}:{httpsProxy.port}"
-        }
 
