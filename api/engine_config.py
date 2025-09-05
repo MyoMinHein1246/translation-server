@@ -26,7 +26,7 @@ def translate_with_mymemory(text, source, target, proxies=None):
             translator = MyMemoryTranslator(source=source_name, target=target_name, proxies=proxies)
             return translator.translate(text)
 
-def translate_with_qcri(text, source, target):
+def translate_with_qcri(text, source, target, proxies=None):
     try:
         """Translate using QCRI Translator."""
         translator = QcriTranslator(source=source, target=target)
