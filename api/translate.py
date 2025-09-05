@@ -2,9 +2,8 @@ from http.server import BaseHTTPRequestHandler
 import http.client
 import json
 import os
-from typing import Text
 from deep_translator import GoogleTranslator, MicrosoftTranslator
-
+from swiftshadow import QuickProxy, ProxyInterface
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -38,6 +37,8 @@ class handler(BaseHTTPRequestHandler):
                     'Content-Type': "application/json"
                 }
 
+                print(os.getenv("MSFT_ENV_VAR"))
+
                 conn.request("POST", f"/translate?to={target}&api-version=3.0&profanityAction=NoAction&textType=plain", payload, headers)
 
                 res = conn.getresponse()
@@ -45,7 +46,15 @@ class handler(BaseHTTPRequestHandler):
 
                 translated_text = data.decode("utf-8")
             else:
-                translator = GoogleTranslator(source=source, target=target)
+                httpProxy = QuickProxy('http')
+                httpsProxy = QuickProxy('https')
+
+                proxies = {
+                    "http": httpProxy,
+                    "https": httpsProxy
+                }
+                
+                translator = GoogleTranslator(source=source, target=target, proxies=proxies)
                 translated_text = translator.translate(text)
             
             # Send response
