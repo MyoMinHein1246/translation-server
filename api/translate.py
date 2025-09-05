@@ -5,21 +5,15 @@ from swiftshadow import QuickProxy
 
 
 class handler(BaseHTTPRequestHandler):
-    
-    def do_GET(self):
-        if self.path == "/translate/engines":
-            self.get_engines()
-        else:
-            self.send_error(404, "Endpoint not found")
 
-    def get_engines(self):
-        """Return the list of currently implemented engines."""
-        engines = ["google", "mymemory", "pons", "linguee"]
-        self.send_response(200)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(json.dumps({"engines": engines}).encode())
+    def __init__(self, *args, **kwargs):
+        self.ENGINE_METHODS = {
+            "google": self.translate_with_google,
+            "mymemory": self.translate_with_mymemory,
+            "pons": self.translate_with_pons,
+            "linguee": self.translate_with_linguee
+        }
+        super().__init__(*args, **kwargs)
 
     def do_POST(self):
         try:
@@ -39,6 +33,10 @@ class handler(BaseHTTPRequestHandler):
                 return
 
             # Perform translation based on the selected engine
+            if engine not in self.ENGINE_METHODS:
+                self.send_error_response(400, f"Unsupported engine: {engine}")
+                return
+
             translated_text = self.perform_translation(engine, text, source, target)
 
             # Send response
@@ -61,32 +59,11 @@ class handler(BaseHTTPRequestHandler):
         except Exception as e:
             self.send_error_response(500, str(e))
 
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
-
-    def send_error_response(self, status_code, message):
-        self.send_response(status_code)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-
-        error_response = {"error": message}
-        self.wfile.write(json.dumps(error_response).encode())
-
     def perform_translation(self, engine, text, source, target):
         """Perform translation based on the selected engine."""
-        if engine == 'google':
-            return self.translate_with_google(text, source, target)
-        elif engine == 'mymemory':
-            return self.translate_with_mymemory(text, source, target)
-        elif engine == 'pons':
-            return self.translate_with_pons(text, source, target)
-        elif engine == 'linguee':
-            return self.translate_with_linguee(text, source, target)
+
+        if engine in self.ENGINE_METHODS:
+            return self.ENGINE_METHODS[engine](text, source, target)
         else:
             raise ValueError(f"Unsupported engine: {engine}")
 
@@ -139,3 +116,4 @@ class handler(BaseHTTPRequestHandler):
             "http": f"{httpProxy.ip}:{httpProxy.port}",
             "https": f"{httpsProxy.ip}:{httpsProxy.port}"
         }
+

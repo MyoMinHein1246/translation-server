@@ -147,12 +147,9 @@
         const text = document.getElementById("sourceText").value;
         const source = document.getElementById("sourceLang").value;
         const target = document.getElementById("targetLang").value;
-        const engines = (await makeRequest("/translate/engines", { method: "GET" })) || [
-          "google",
-          "mymemory",
-          "pons",
-          "linguee",
-        ];
+        const engines = (await makeRequest("/engines", {
+          method: "GET",
+        })) || ["google", "mymemory", "pons", "linguee"];
 
         for (const engine of engines) {
           try {
