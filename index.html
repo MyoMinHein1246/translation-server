@@ -63,6 +63,14 @@
         </select>
       </div>
 
+      <div class="input-group">
+        <label>Engine:</label>
+        <select id="engine">
+          <option value="google" selected>Google Translate</option>
+          <option value="microsoft">Microsoft Translator</option>
+        </select>
+      </div>
+
       <button onclick="translateText()">Translate</button>
       <button onclick="detectLanguage()">Detect Language</button>
       <button onclick="testAllEndpoints()">Test All Endpoints</button>
@@ -112,6 +120,7 @@
         const text = document.getElementById("sourceText").value;
         const source = document.getElementById("sourceLang").value;
         const target = document.getElementById("targetLang").value;
+        const engine = document.getElementById("engine").value;
 
         try {
           const result = await makeRequest("/translate", {
@@ -123,6 +132,7 @@
               q: text,
               source: source,
               target: target,
+              engine: engine,
             }),
           });
 
