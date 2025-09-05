@@ -29,7 +29,7 @@ class handler(BaseHTTPRequestHandler):
                 # translator = MicrosoftTranslator(source=source, target=target)
                 conn = http.client.HTTPSConnection("microsoft-translator-text.p.rapidapi.com")
 
-                payload = f'[{"Text": "{text}"}]'
+                payload = f'[{{"Text": "{text}"}}]'
 
                 headers = {
                     'x-rapidapi-key': os.getenv("MSFT_ENV_VAR"),
@@ -37,7 +37,7 @@ class handler(BaseHTTPRequestHandler):
                     'Content-Type': "application/json"
                 }
 
-                conn.request("POST", "/translate?api-version=3.0&profanityAction=NoAction&textType=plain", payload, headers)
+                conn.request("POST", f"/translate?to={target}&api-version=3.0&profanityAction=NoAction&textType=plain", payload, headers)
 
                 res = conn.getresponse()
                 data = res.read()
