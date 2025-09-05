@@ -46,8 +46,8 @@ class handler(BaseHTTPRequestHandler):
 
                 translated_text = data.decode("utf-8")
             else:
-                httpProxy = QuickProxy('http')
-                httpsProxy = QuickProxy('https')
+                httpProxy = QuickProxy(protocol='http')
+                httpsProxy = QuickProxy(protocol='https')
 
                 proxies = {
                     "http": httpProxy.as_string(),
