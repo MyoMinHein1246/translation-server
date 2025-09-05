@@ -21,7 +21,7 @@ class handler(BaseHTTPRequestHandler):
             
             # Attempt detection
             translator = GoogleTranslator(source='auto', target='en')
-            detected_lang = translator.detect(text)
+            detected_lang = translator.source
             response = {"language": detected_lang}
             
             self.send_response(200)
