@@ -5,15 +5,21 @@ from swiftshadow import QuickProxy
 
 
 class handler(BaseHTTPRequestHandler):
+    
     def do_GET(self):
-        # return all available engines
+        if self.path == "/translate/engines":
+            self.get_engines()
+        else:
+            self.send_error(404, "Endpoint not found")
+
+    def get_engines(self):
+        """Return the list of currently implemented engines."""
         engines = ["google", "mymemory", "pons", "linguee"]
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
         self.wfile.write(json.dumps({"engines": engines}).encode())
-        
 
     def do_POST(self):
         try:

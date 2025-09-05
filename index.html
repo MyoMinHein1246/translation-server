@@ -147,7 +147,7 @@
         const text = document.getElementById("sourceText").value;
         const source = document.getElementById("sourceLang").value;
         const target = document.getElementById("targetLang").value;
-        const engines = (await makeRequest("/translate")) || [
+        const engines = (await makeRequest("/translate/engines", { method: "GET" })) || [
           "google",
           "mymemory",
           "pons",
