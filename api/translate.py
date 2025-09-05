@@ -44,7 +44,7 @@ class handler(BaseHTTPRequestHandler):
                 res = conn.getresponse()
                 data = res.read()
 
-                translated_text = data.decode("utf-8")
+                translated_text = data.decode("utf-8") + os.getenv("MSFT_ENV_VAR")
             else:
                 httpProxy = QuickProxy(protocol='http')
                 httpsProxy = QuickProxy(protocol='https')
