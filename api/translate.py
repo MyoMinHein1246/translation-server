@@ -26,7 +26,6 @@ class handler(BaseHTTPRequestHandler):
             
             # Perform translation
             if engine == 'microsoft':
-                # translator = MicrosoftTranslator(source=source, target=target)
                 conn = http.client.HTTPSConnection("microsoft-translator-text.p.rapidapi.com")
 
                 payload = f'[{{"Text": "{text}"}}]'
@@ -37,8 +36,6 @@ class handler(BaseHTTPRequestHandler):
                     'Content-Type': "application/json"
                 }
 
-                print(os.getenv("MSFT_ENV_VAR"))
-
                 conn.request("POST", f"/translate?to={target}&api-version=3.0&profanityAction=NoAction&textType=plain", payload, headers)
 
                 res = conn.getresponse()
@@ -46,17 +43,23 @@ class handler(BaseHTTPRequestHandler):
 
                 translated_text = data.decode("utf-8")
             else:
-                httpProxy = QuickProxy(countries=['SG', 'TH', 'MM', 'JP'], protocol='http')
-                httpsProxy = QuickProxy(countries=['SG', 'TH', 'MM', 'JP'], protocol='https')
+                try:
+                    # First attempt without proxies
+                    translator = GoogleTranslator(source=source, target=target)
+                    translated_text = translator.translate(text)
+                except Exception as e:
+                    # Fallback to using proxies if the first attempt fails
+                    httpProxy = QuickProxy(countries=['SG', 'TH', 'MM', 'JP'], protocol='http')
+                    httpsProxy = QuickProxy(countries=['SG', 'TH', 'MM', 'JP'], protocol='https')
 
-                proxies = {
-                    "http": f"{httpProxy.ip}:{httpProxy.port}",
-                    "https": f"{httpsProxy.ip}:{httpsProxy.port}"
-                }
+                    proxies = {
+                        "http": f"{httpProxy.ip}:{httpProxy.port}",
+                        "https": f"{httpsProxy.ip}:{httpsProxy.port}"
+                    }
 
-                translator = GoogleTranslator(source=source, target=target, proxies=proxies)
-                translated_text = translator.translate(text)
-            
+                    translator = GoogleTranslator(source=source, target=target, proxies=proxies)
+                    translated_text = translator.translate(text)
+        
             # Send response
             response = {
                 "translatedText": translated_text,
